@@ -1,0 +1,53 @@
+let mapleader = " "
+let maplocalleader = " "
+
+" UI Settings
+set number
+set relativenumber
+set mouse=a
+set scrolloff=10
+
+" Search
+set ignorecase
+set smartcase
+set incsearch
+set nohlsearch
+
+" Split window behavior
+set splitright
+set splitbelow
+
+" Undo
+set undofile
+
+" Indentation
+set shiftwidth=4
+set tabstop=4
+set softtabstop=4
+set smartindent
+set breakindent
+
+" Status & UI
+set numberwidth=2
+set nowrap
+set updatetime=250
+set timeoutlen=300
+
+" Clipboard (requires Vim with +clipboard)
+" Uncomment if your Vim supports it:
+" set clipboard=unnamedplus
+
+" Color support (only in terminals that support 24-bit)
+" set termguicolors
+
+" Popup menu height
+set pumheight=20
+
+" Visual column guide at 120 chars
+set colorcolumn=120
+
+" Ask before quitting unsaved files
+set confirm
+
+syntax on
+filetype plugin indent on

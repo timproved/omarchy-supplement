@@ -1,0 +1,36 @@
+# See https://git-scm.com/docs/git-config
+
+[alias]
+	co = checkout
+	br = branch
+	ci = commit
+	st = status
+[init]
+	defaultBranch = master
+[pull]
+	rebase = true
+[push]
+	autoSetupRemote = true
+[diff]
+	algorithm = histogram
+	colorMoved = plain
+	mnemonicPrefix = true
+[commit]
+	verbose = true
+[column]
+	ui = auto
+[branch]
+	sort = -committerdate
+[tag]
+	sort = -version:refname
+[rerere]
+	enabled = true
+	autoupdate = true
+[user]
+	name = timproved
+	email = 48419301+timproved@users.noreply.github.com
+[core]
+	editor = nvim
+[merge]
+	ff = false
+	conflictstyle = diff3

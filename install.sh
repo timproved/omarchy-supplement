@@ -8,12 +8,26 @@ HYPR_DIR="$HOME/.config/hypr"
 HYPRLAND_CONFIG="$HYPR_DIR/hyprland.conf"
 MANAGED_BINDINGS_SOURCE="$SCRIPT_DIR/config/hypr/bindings.conf"
 MANAGED_SUPPLEMENT_SOURCE="$SCRIPT_DIR/config/hypr/omarchy-supplement.conf"
+MANAGED_ALACRITTY_SOURCE="$SCRIPT_DIR/config/alacritty/alacritty.toml"
+MANAGED_GIT_SOURCE="$SCRIPT_DIR/config/git/config"
+MANAGED_GHOSTTY_SOURCE="$SCRIPT_DIR/config/ghostty/config"
+MANAGED_MAKIMA_SOURCE="$SCRIPT_DIR/config/makima/AT Translated Set 2 keyboard.toml"
 MANAGED_TMUX_SOURCE="$SCRIPT_DIR/config/tmux/tmux.conf"
 MANAGED_SHELL_SOURCE="$SCRIPT_DIR/config/shell/interactive.sh"
+MANAGED_SCREENSHOT_SOURCE="$SCRIPT_DIR/config/omarchy-supplement/bin/screenshot-select.sh"
+MANAGED_VIM_SOURCE="$SCRIPT_DIR/config/vim/vimrc"
+MANAGED_XDG_TERMINALS_SOURCE="$SCRIPT_DIR/config/xdg-terminals.list"
 TARGET_BINDINGS="$HYPR_DIR/bindings.conf"
 TARGET_SUPPLEMENT="$HYPR_DIR/omarchy-supplement.conf"
+TARGET_ALACRITTY="$HOME/.config/alacritty/alacritty.toml"
+TARGET_GIT="$HOME/.config/git/config"
+TARGET_GHOSTTY="$HOME/.config/ghostty/config"
+TARGET_MAKIMA="$HOME/.config/makima/AT Translated Set 2 keyboard.toml"
 TARGET_TMUX="$HOME/.config/tmux/tmux.conf"
 TARGET_SHELL_SNIPPET="$HOME/.config/omarchy-supplement/shell/interactive.sh"
+TARGET_SCREENSHOT_SCRIPT="$HOME/.config/omarchy-supplement/bin/screenshot-select.sh"
+TARGET_VIMRC="$HOME/.vimrc"
+TARGET_XDG_TERMINALS="$HOME/.config/xdg-terminals.list"
 PACKAGES_DIR="$SCRIPT_DIR/packages"
 SUPPLEMENT_SOURCE_LINE='source = ~/.config/hypr/omarchy-supplement.conf'
 BASH_SOURCE_LINE='[[ -f ~/.config/omarchy-supplement/shell/interactive.sh ]] && source ~/.config/omarchy-supplement/shell/interactive.sh'
@@ -130,8 +144,15 @@ install_packages() {
 install_configs() {
   link_managed_file "$MANAGED_BINDINGS_SOURCE" "$TARGET_BINDINGS"
   link_managed_file "$MANAGED_SUPPLEMENT_SOURCE" "$TARGET_SUPPLEMENT"
+  link_managed_file "$MANAGED_ALACRITTY_SOURCE" "$TARGET_ALACRITTY"
+  link_managed_file "$MANAGED_GIT_SOURCE" "$TARGET_GIT"
+  link_managed_file "$MANAGED_GHOSTTY_SOURCE" "$TARGET_GHOSTTY"
+  link_managed_file "$MANAGED_MAKIMA_SOURCE" "$TARGET_MAKIMA"
   link_managed_file "$MANAGED_TMUX_SOURCE" "$TARGET_TMUX"
   link_managed_file "$MANAGED_SHELL_SOURCE" "$TARGET_SHELL_SNIPPET"
+  link_managed_file "$MANAGED_SCREENSHOT_SOURCE" "$TARGET_SCREENSHOT_SCRIPT"
+  link_managed_file "$MANAGED_VIM_SOURCE" "$TARGET_VIMRC"
+  link_managed_file "$MANAGED_XDG_TERMINALS_SOURCE" "$TARGET_XDG_TERMINALS"
   ensure_hyprland_source
   ensure_source_line "$HOME/.bashrc" "$BASH_SOURCE_LINE"
   ensure_source_line "$HOME/.zshrc" "$ZSH_SOURCE_LINE"
@@ -144,6 +165,10 @@ install_configs() {
     omarchy-restart-tmux >/dev/null 2>&1 || true
   elif command -v tmux >/dev/null 2>&1; then
     tmux source-file "$TARGET_TMUX" >/dev/null 2>&1 || true
+  fi
+
+  if command -v omarchy-restart-terminal >/dev/null 2>&1; then
+    omarchy-restart-terminal >/dev/null 2>&1 || true
   fi
 }
 

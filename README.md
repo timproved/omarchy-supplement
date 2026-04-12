@@ -15,13 +15,24 @@ Repo-managed Omarchy customizations and bootstrap scripts.
 ```text
 config/hypr/bindings.conf
 config/hypr/omarchy-supplement.conf
+config/alacritty/alacritty.toml
+config/git/config
+config/ghostty/config
+config/keyd/default.conf
+config/makima/AT Translated Set 2 keyboard.toml
+config/omarchy-supplement/bin/screenshot-select.sh
 config/shell/interactive.sh
 config/tmux/tmux.conf
+config/vim/vimrc
+config/xdg-terminals.list
 install.sh
 packages/install-arch-core.sh
+packages/install-keyd.sh
+packages/install-neovim-config.sh
 packages/install-opencode.sh
 packages/install-sdkman.sh
 packages/install-tmux-tpm.sh
+packages/install-uv.sh
 packages/lib.sh
 ```
 
