@@ -6,9 +6,9 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 HYPR_DIR="$HOME/.config/hypr"
 HYPRLAND_CONFIG="$HYPR_DIR/hyprland.conf"
+MANAGED_APPLICATIONS_DIR="$SCRIPT_DIR/config/applications"
 MANAGED_BINDINGS_SOURCE="$SCRIPT_DIR/config/hypr/bindings.conf"
 MANAGED_HYPR_AUTOSTART_SOURCE="$SCRIPT_DIR/config/hypr/autostart.conf"
-MANAGED_LIBREPODS_DESKTOP_SOURCE="$SCRIPT_DIR/config/applications/me.kavishdevar.librepods.desktop"
 MANAGED_SUPPLEMENT_SOURCE="$SCRIPT_DIR/config/hypr/omarchy-supplement.conf"
 MANAGED_ALACRITTY_SOURCE="$SCRIPT_DIR/config/alacritty/alacritty.toml"
 MANAGED_GIT_SOURCE="$SCRIPT_DIR/config/git/config"
@@ -19,12 +19,13 @@ MANAGED_TMUX_SOURCE="$SCRIPT_DIR/config/tmux/tmux.conf"
 MANAGED_SHELL_SOURCE="$SCRIPT_DIR/config/shell/interactive.sh"
 MANAGED_UNWANTED_WEBAPPS_SOURCE="$SCRIPT_DIR/config/omarchy-supplement/bin/remove-unwanted-webapps.sh"
 MANAGED_SCREENSHOT_SOURCE="$SCRIPT_DIR/config/omarchy-supplement/bin/screenshot-select.sh"
+MANAGED_CITRIX_XDG_SOURCE="$SCRIPT_DIR/config/omarchy-supplement/bin/set-citrix-xdg-defaults.sh"
 MANAGED_VIM_SOURCE="$SCRIPT_DIR/config/vim/vimrc"
 MANAGED_WIREPLUMBER_AVRCP_SOURCE="$SCRIPT_DIR/config/wireplumber/wireplumber.conf.d/51-bluez-avrcp.conf"
 MANAGED_XDG_TERMINALS_SOURCE="$SCRIPT_DIR/config/xdg-terminals.list"
 TARGET_BINDINGS="$HYPR_DIR/bindings.conf"
 TARGET_HYPR_AUTOSTART="$HYPR_DIR/autostart.conf"
-TARGET_LIBREPODS_DESKTOP="$HOME/.local/share/applications/me.kavishdevar.librepods.desktop"
+TARGET_APPLICATIONS_DIR="$HOME/.local/share/applications"
 TARGET_SUPPLEMENT="$HYPR_DIR/omarchy-supplement.conf"
 TARGET_ALACRITTY="$HOME/.config/alacritty/alacritty.toml"
 TARGET_GIT="$HOME/.config/git/config"
@@ -36,6 +37,8 @@ TARGET_TMUX="$HOME/.config/tmux/tmux.conf"
 TARGET_SHELL_SNIPPET="$HOME/.config/omarchy-supplement/shell/interactive.sh"
 TARGET_UNWANTED_WEBAPPS_SCRIPT="$HOME/.config/omarchy-supplement/bin/remove-unwanted-webapps.sh"
 TARGET_SCREENSHOT_SCRIPT="$HOME/.config/omarchy-supplement/bin/screenshot-select.sh"
+TARGET_CITRIX_XDG_SCRIPT="$HOME/.config/omarchy-supplement/bin/set-citrix-xdg-defaults.sh"
+TARGET_OLD_ICA_XDG_SCRIPT="$HOME/.config/omarchy-supplement/bin/set-ica-xdg-default.sh"
 TARGET_VIMRC="$HOME/.vimrc"
 TARGET_WIREPLUMBER_AVRCP="$HOME/.config/wireplumber/wireplumber.conf.d/51-bluez-avrcp.conf"
 TARGET_XDG_TERMINALS="$HOME/.config/xdg-terminals.list"
@@ -100,6 +103,12 @@ link_managed_file() {
 
   ln -s "$source_file" "$target_file"
   echo "Linked $target_file -> $source_file"
+}
+
+link_managed_application() {
+  local desktop_id=$1
+
+  link_managed_file "$MANAGED_APPLICATIONS_DIR/$desktop_id" "$TARGET_APPLICATIONS_DIR/$desktop_id"
 }
 
 ensure_hyprland_source() {
@@ -201,7 +210,13 @@ install_packages() {
 install_configs() {
   link_managed_file "$MANAGED_BINDINGS_SOURCE" "$TARGET_BINDINGS"
   link_managed_file "$MANAGED_HYPR_AUTOSTART_SOURCE" "$TARGET_HYPR_AUTOSTART"
-  link_managed_file "$MANAGED_LIBREPODS_DESKTOP_SOURCE" "$TARGET_LIBREPODS_DESKTOP"
+  link_managed_application "me.kavishdevar.librepods.desktop"
+  link_managed_application "new_store.desktop"
+  link_managed_application "receiver.desktop"
+  link_managed_application "receiver_fido2.desktop"
+  link_managed_application "fido2_llt.desktop"
+  link_managed_application "citrixapp.desktop"
+  link_managed_application "ctxaadsso.desktop"
   link_managed_file "$MANAGED_SUPPLEMENT_SOURCE" "$TARGET_SUPPLEMENT"
   link_managed_file "$MANAGED_ALACRITTY_SOURCE" "$TARGET_ALACRITTY"
   link_managed_file "$MANAGED_GIT_SOURCE" "$TARGET_GIT"
@@ -216,10 +231,16 @@ install_configs() {
   link_managed_file "$MANAGED_SHELL_SOURCE" "$TARGET_SHELL_SNIPPET"
   link_managed_file "$MANAGED_UNWANTED_WEBAPPS_SOURCE" "$TARGET_UNWANTED_WEBAPPS_SCRIPT"
   link_managed_file "$MANAGED_SCREENSHOT_SOURCE" "$TARGET_SCREENSHOT_SCRIPT"
+  if [[ -L $TARGET_OLD_ICA_XDG_SCRIPT ]]; then
+    rm "$TARGET_OLD_ICA_XDG_SCRIPT"
+    echo "Removed obsolete managed link: $TARGET_OLD_ICA_XDG_SCRIPT"
+  fi
+  link_managed_file "$MANAGED_CITRIX_XDG_SOURCE" "$TARGET_CITRIX_XDG_SCRIPT"
   link_managed_file "$MANAGED_VIM_SOURCE" "$TARGET_VIMRC"
   link_managed_file "$MANAGED_WIREPLUMBER_AVRCP_SOURCE" "$TARGET_WIREPLUMBER_AVRCP"
   link_managed_file "$MANAGED_XDG_TERMINALS_SOURCE" "$TARGET_XDG_TERMINALS"
   bash "$TARGET_UNWANTED_WEBAPPS_SCRIPT"
+  bash "$TARGET_CITRIX_XDG_SCRIPT"
   ensure_hyprland_source
   ensure_source_line "$HOME/.bashrc" "$BASH_SOURCE_LINE"
   ensure_source_line "$HOME/.zshrc" "$ZSH_SOURCE_LINE"

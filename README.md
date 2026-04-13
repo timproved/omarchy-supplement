@@ -16,7 +16,13 @@ Repo-managed Omarchy customizations and bootstrap scripts.
 config/hypr/bindings.conf
 config/hypr/autostart.conf
 config/hypr/omarchy-supplement.conf
+config/applications/citrixapp.desktop
+config/applications/ctxaadsso.desktop
+config/applications/fido2_llt.desktop
 config/applications/me.kavishdevar.librepods.desktop
+config/applications/new_store.desktop
+config/applications/receiver.desktop
+config/applications/receiver_fido2.desktop
 config/alacritty/alacritty.toml
 config/git/config
 config/ghostty/config
@@ -24,6 +30,7 @@ config/keyd/default.conf
 config/makima/AT Translated Set 2 keyboard.toml
 config/omarchy/themed/starship.toml.tpl
 config/omarchy-supplement/bin/remove-unwanted-webapps.sh
+config/omarchy-supplement/bin/set-citrix-xdg-defaults.sh
 config/omarchy-supplement/bin/screenshot-select.sh
 config/shell/interactive.sh
 config/tmux/tmux.conf
@@ -47,6 +54,7 @@ packages/lib.sh
 1. Installs your packages and user tools.
 2. Symlinks managed config files into `~/.config/`.
 3. Ensures `~/.config/hypr/hyprland.conf` sources `~/.config/hypr/omarchy-supplement.conf`.
+4. Reapplies Citrix XDG handlers for `.ica` files and Citrix browser launch URLs when Citrix is installed.
 
 ## Packages
 

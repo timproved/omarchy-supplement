@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Citrix Workspace Launcher
+StartupWMClass=Wfica
+NoDisplay=true
+MimeType=x-scheme-handler/citrixapp;
+Categories=Network;
+Icon=/opt/Citrix/ICAClient/icons/receiver.png
+TryExec=/opt/Citrix/ICAClient/selfservice
+Exec=/opt/Citrix/ICAClient/selfservice %u
