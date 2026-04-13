@@ -14,20 +14,26 @@ Repo-managed Omarchy customizations and bootstrap scripts.
 
 ```text
 config/hypr/bindings.conf
+config/hypr/autostart.conf
 config/hypr/omarchy-supplement.conf
+config/applications/me.kavishdevar.librepods.desktop
 config/alacritty/alacritty.toml
 config/git/config
 config/ghostty/config
 config/keyd/default.conf
 config/makima/AT Translated Set 2 keyboard.toml
+config/omarchy/themed/starship.toml.tpl
+config/omarchy-supplement/bin/remove-unwanted-webapps.sh
 config/omarchy-supplement/bin/screenshot-select.sh
 config/shell/interactive.sh
 config/tmux/tmux.conf
 config/vim/vimrc
+config/wireplumber/wireplumber.conf.d/51-bluez-avrcp.conf
 config/xdg-terminals.list
 install.sh
 packages/install-arch-core.sh
 packages/install-keyd.sh
+packages/install-librepods.sh
 packages/install-neovim-config.sh
 packages/install-opencode.sh
 packages/install-sdkman.sh
@@ -64,3 +70,14 @@ install_arch_packages neovim fzf ripgrep
 ```
 
 Save that as something like `packages/install-dev-tools.sh`, then run `./install.sh --packages-only`.
+
+## LibrePods
+
+`./install.sh` now manages LibrePods end to end:
+
+1. Installs the `librepods` AUR package via the normal package installer flow.
+2. Symlinks a managed `~/.config/hypr/autostart.conf` that launches `librepods --hide` with a per-app Qt style override so it does not inherit Omarchy's global Kvantum setting.
+3. Symlinks a managed desktop entry at `~/.local/share/applications/me.kavishdevar.librepods.desktop` so Walker launches LibrePods with the same per-app Qt override.
+4. Symlinks `~/.config/wireplumber/wireplumber.conf.d/51-bluez-avrcp.conf` and best-effort restarts WirePlumber so AirPods media controls work.
+
+The `qt.bluetooth.bluez` `CAP_NET_ADMIN` warning is left alone for now; the supplement only fixes the actual launch crash caused by the global Kvantum override.
