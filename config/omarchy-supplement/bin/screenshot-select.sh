@@ -11,5 +11,6 @@ SELECTION=$(slurp 2>/dev/null)
 
 FILEPATH="$SCREENSHOT_DIR/screenshot-$(date +'%d%m%Y-%H%M%S').png"
 
-grim -g "$SELECTION" - | tee "$FILEPATH" | wl-copy --type image/png
-notify-send "Screenshot saved and copied" "$FILEPATH" -i "$FILEPATH" -u low -t 2000
+grim -g "$SELECTION" "$FILEPATH"
+wl-copy <"$FILEPATH"
+notify-send "Screenshot saved to clipboard and file" "$FILEPATH" -i "$FILEPATH" -u low -t 2000
