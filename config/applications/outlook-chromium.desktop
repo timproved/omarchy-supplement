@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Outlook
+Comment=Launch Outlook in Chromium app mode
+Exec=/usr/bin/chromium --profile-directory=Default --app=https://outlook.office.com/
+Icon=chrome-faolnafnngnfdaknnbpnkhgohbobgegn-Default
+Terminal=false
+Categories=Network;Email;

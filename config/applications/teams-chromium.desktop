@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Microsoft Teams
+Comment=Launch Microsoft Teams in Chromium app mode
+Exec=/usr/bin/chromium --profile-directory=Default --app=https://teams.cloud.microsoft/
+Icon=chrome-ompifgpmddkgmclendfeacglnodjjndh-Default
+Terminal=false
+Categories=Network;InstantMessaging;

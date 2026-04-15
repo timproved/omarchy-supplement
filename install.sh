@@ -7,6 +7,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 HYPR_DIR="$HOME/.config/hypr"
 HYPRLAND_CONFIG="$HYPR_DIR/hyprland.conf"
 MANAGED_APPLICATIONS_DIR="$SCRIPT_DIR/config/applications"
+MANAGED_WEBAPP_ICONS_DIR="$SCRIPT_DIR/config/icons/hicolor"
 MANAGED_BINDINGS_SOURCE="$SCRIPT_DIR/config/hypr/bindings.conf"
 MANAGED_HYPR_AUTOSTART_SOURCE="$SCRIPT_DIR/config/hypr/autostart.conf"
 MANAGED_SUPPLEMENT_SOURCE="$SCRIPT_DIR/config/hypr/omarchy-supplement.conf"
@@ -26,6 +27,7 @@ MANAGED_XDG_TERMINALS_SOURCE="$SCRIPT_DIR/config/xdg-terminals.list"
 TARGET_BINDINGS="$HYPR_DIR/bindings.conf"
 TARGET_HYPR_AUTOSTART="$HYPR_DIR/autostart.conf"
 TARGET_APPLICATIONS_DIR="$HOME/.local/share/applications"
+TARGET_WEBAPP_ICONS_DIR="$HOME/.local/share/icons/hicolor"
 TARGET_SUPPLEMENT="$HYPR_DIR/omarchy-supplement.conf"
 TARGET_ALACRITTY="$HOME/.config/alacritty/alacritty.toml"
 TARGET_GIT="$HOME/.config/git/config"
@@ -109,6 +111,24 @@ link_managed_application() {
   local desktop_id=$1
 
   link_managed_file "$MANAGED_APPLICATIONS_DIR/$desktop_id" "$TARGET_APPLICATIONS_DIR/$desktop_id"
+}
+
+link_managed_webapp_icons() {
+  local apps_dir
+  local icon_file
+  local relative_path
+
+  [[ -d $MANAGED_WEBAPP_ICONS_DIR ]] || return 0
+
+  shopt -s nullglob
+  for apps_dir in "$MANAGED_WEBAPP_ICONS_DIR"/*/apps; do
+    for icon_file in "$apps_dir"/*.png; do
+      [[ -f $icon_file ]] || continue
+      relative_path=${icon_file#"$MANAGED_WEBAPP_ICONS_DIR"/}
+      link_managed_file "$icon_file" "$TARGET_WEBAPP_ICONS_DIR/$relative_path"
+    done
+  done
+  shopt -u nullglob
 }
 
 ensure_hyprland_source() {
@@ -211,12 +231,15 @@ install_configs() {
   link_managed_file "$MANAGED_BINDINGS_SOURCE" "$TARGET_BINDINGS"
   link_managed_file "$MANAGED_HYPR_AUTOSTART_SOURCE" "$TARGET_HYPR_AUTOSTART"
   link_managed_application "me.kavishdevar.librepods.desktop"
+  link_managed_application "outlook-chromium.desktop"
+  link_managed_application "teams-chromium.desktop"
   link_managed_application "new_store.desktop"
   link_managed_application "receiver.desktop"
   link_managed_application "receiver_fido2.desktop"
   link_managed_application "fido2_llt.desktop"
   link_managed_application "citrixapp.desktop"
   link_managed_application "ctxaadsso.desktop"
+  link_managed_webapp_icons
   link_managed_file "$MANAGED_SUPPLEMENT_SOURCE" "$TARGET_SUPPLEMENT"
   link_managed_file "$MANAGED_ALACRITTY_SOURCE" "$TARGET_ALACRITTY"
   link_managed_file "$MANAGED_GIT_SOURCE" "$TARGET_GIT"
@@ -262,6 +285,7 @@ install_configs() {
   if command -v systemctl >/dev/null 2>&1; then
     systemctl --user restart wireplumber >/dev/null 2>&1 || true
   fi
+
 }
 
 while (( $# > 0 )); do
