@@ -37,6 +37,7 @@ config/omarchy-supplement/bin/screenshot-select.sh
 config/shell/interactive.sh
 config/tmux/tmux.conf
 config/vim/vimrc
+config/wireplumber/wireplumber.conf.d/50-bluez-policy.conf
 config/wireplumber/wireplumber.conf.d/51-bluez-avrcp.conf
 config/xdg-terminals.list
 install.sh
@@ -90,7 +91,7 @@ Save that as something like `packages/install-dev-tools.sh`, then run `./install
 1. Installs the `librepods` AUR package via the normal package installer flow.
 2. Symlinks a managed `~/.config/hypr/autostart.conf` that launches `librepods --hide` with a per-app Qt style override so it does not inherit Omarchy's global Kvantum setting.
 3. Symlinks a managed desktop entry at `~/.local/share/applications/me.kavishdevar.librepods.desktop` so Walker launches LibrePods with the same per-app Qt override.
-4. Symlinks `~/.config/wireplumber/wireplumber.conf.d/51-bluez-avrcp.conf` and best-effort restarts WirePlumber so AirPods media controls work.
+4. Symlinks managed WirePlumber BlueZ policy and AVRCP configs and best-effort restarts WirePlumber so AirPods media controls work.
 
 The `qt.bluetooth.bluez` `CAP_NET_ADMIN` warning is left alone for now; the supplement only fixes the actual launch crash caused by the global Kvantum override.
 
