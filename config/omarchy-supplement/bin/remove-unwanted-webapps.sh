@@ -15,7 +15,7 @@ remove_packages_if_possible() {
     fi
   done
 
-  (( ${#packages[@]} > 0 )) || return
+  (( ${#packages[@]} > 0 )) || return 0
 
   if sudo -n true >/dev/null 2>&1; then
     omarchy-pkg-drop "${packages[@]}"
@@ -62,10 +62,7 @@ if pacman -Q 1password-beta >/dev/null 2>&1 || pacman -Q 1password-cli >/dev/nul
   hide_system_launcher "1password.desktop"
 fi
 
+# The Omarchy shell watches this directory, so no launcher restart is needed.
 if command -v update-desktop-database >/dev/null 2>&1; then
   update-desktop-database "$DESKTOP_DIR" >/dev/null 2>&1 || true
-fi
-
-if command -v omarchy-restart-walker >/dev/null 2>&1; then
-  omarchy-restart-walker >/dev/null 2>&1 || true
 fi

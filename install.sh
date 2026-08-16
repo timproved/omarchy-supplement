@@ -5,54 +5,57 @@ set -euo pipefail
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 HYPR_DIR="$HOME/.config/hypr"
-HYPRLAND_CONFIG="$HYPR_DIR/hyprland.conf"
+HYPRLAND_CONFIG="$HYPR_DIR/hyprland.lua"
 MANAGED_APPLICATIONS_DIR="$SCRIPT_DIR/config/applications"
 MANAGED_WEBAPP_ICONS_DIR="$SCRIPT_DIR/config/icons/hicolor"
-MANAGED_BINDINGS_SOURCE="$SCRIPT_DIR/config/hypr/bindings.conf"
-MANAGED_HYPR_AUTOSTART_SOURCE="$SCRIPT_DIR/config/hypr/autostart.conf"
-MANAGED_SUPPLEMENT_SOURCE="$SCRIPT_DIR/config/hypr/omarchy-supplement.conf"
+MANAGED_HYPR_SUPPLEMENT_SOURCE="$SCRIPT_DIR/config/hypr/supplement.lua"
 MANAGED_ALACRITTY_SOURCE="$SCRIPT_DIR/config/alacritty/alacritty.toml"
 MANAGED_GIT_SOURCE="$SCRIPT_DIR/config/git/config"
 MANAGED_GHOSTTY_SOURCE="$SCRIPT_DIR/config/ghostty/config"
-MANAGED_MAKIMA_SOURCE="$SCRIPT_DIR/config/makima/AT Translated Set 2 keyboard.toml"
 MANAGED_STARSHIP_TEMPLATE_SOURCE="$SCRIPT_DIR/config/omarchy/themed/starship.toml.tpl"
 MANAGED_TMUX_SOURCE="$SCRIPT_DIR/config/tmux/tmux.conf"
 MANAGED_SHELL_SOURCE="$SCRIPT_DIR/config/shell/interactive.sh"
 MANAGED_UNWANTED_WEBAPPS_SOURCE="$SCRIPT_DIR/config/omarchy-supplement/bin/remove-unwanted-webapps.sh"
-MANAGED_SCREENSHOT_SOURCE="$SCRIPT_DIR/config/omarchy-supplement/bin/screenshot-select.sh"
 MANAGED_CITRIX_XDG_SOURCE="$SCRIPT_DIR/config/omarchy-supplement/bin/set-citrix-xdg-defaults.sh"
 MANAGED_SIOYEK_XDG_SOURCE="$SCRIPT_DIR/config/omarchy-supplement/bin/set-sioyek-xdg-defaults.sh"
 MANAGED_VIM_SOURCE="$SCRIPT_DIR/config/vim/vimrc"
 MANAGED_WIREPLUMBER_BLUEZ_POLICY_SOURCE="$SCRIPT_DIR/config/wireplumber/wireplumber.conf.d/50-bluez-policy.conf"
 MANAGED_WIREPLUMBER_AVRCP_SOURCE="$SCRIPT_DIR/config/wireplumber/wireplumber.conf.d/51-bluez-avrcp.conf"
-MANAGED_XDG_TERMINALS_SOURCE="$SCRIPT_DIR/config/xdg-terminals.list"
-TARGET_BINDINGS="$HYPR_DIR/bindings.conf"
-TARGET_HYPR_AUTOSTART="$HYPR_DIR/autostart.conf"
 TARGET_APPLICATIONS_DIR="$HOME/.local/share/applications"
 TARGET_WEBAPP_ICONS_DIR="$HOME/.local/share/icons/hicolor"
-TARGET_SUPPLEMENT="$HYPR_DIR/omarchy-supplement.conf"
+# Resolved by Hyprland's Lua package.path (~/.config/?.lua) as
+# require("omarchy-supplement.hypr"). That path has no ?/init.lua pattern, so
+# this has to stay a single file rather than a directory.
+TARGET_HYPR_SUPPLEMENT="$HOME/.config/omarchy-supplement/hypr.lua"
 TARGET_ALACRITTY="$HOME/.config/alacritty/alacritty.toml"
 TARGET_GIT="$HOME/.config/git/config"
 TARGET_GHOSTTY="$HOME/.config/ghostty/config"
-TARGET_MAKIMA="$HOME/.config/makima/AT Translated Set 2 keyboard.toml"
 TARGET_STARSHIP_TEMPLATE="$HOME/.config/omarchy/themed/starship.toml.tpl"
 TARGET_STARSHIP="$HOME/.config/starship.toml"
 TARGET_TMUX="$HOME/.config/tmux/tmux.conf"
 TARGET_SHELL_SNIPPET="$HOME/.config/omarchy-supplement/shell/interactive.sh"
 TARGET_UNWANTED_WEBAPPS_SCRIPT="$HOME/.config/omarchy-supplement/bin/remove-unwanted-webapps.sh"
-TARGET_SCREENSHOT_SCRIPT="$HOME/.config/omarchy-supplement/bin/screenshot-select.sh"
 TARGET_CITRIX_XDG_SCRIPT="$HOME/.config/omarchy-supplement/bin/set-citrix-xdg-defaults.sh"
 TARGET_SIOYEK_XDG_SCRIPT="$HOME/.config/omarchy-supplement/bin/set-sioyek-xdg-defaults.sh"
 TARGET_OLD_ICA_XDG_SCRIPT="$HOME/.config/omarchy-supplement/bin/set-ica-xdg-default.sh"
+TARGET_OLD_SCREENSHOT_SCRIPT="$HOME/.config/omarchy-supplement/bin/screenshot-select.sh"
+# Pre-Quattro links: Hyprland read .conf, and this list was repo-managed. The
+# terminal list especially has to go, since omarchy-default-terminal writes
+# through a symlink and would rewrite the repo file.
+TARGET_OLD_HYPR_LINKS=(
+  "$HYPR_DIR/bindings.conf"
+  "$HYPR_DIR/autostart.conf"
+  "$HYPR_DIR/omarchy-supplement.conf"
+  "$HOME/.config/xdg-terminals.list"
+)
 TARGET_VIMRC="$HOME/.vimrc"
 TARGET_WIREPLUMBER_BLUEZ_POLICY="$HOME/.config/wireplumber/wireplumber.conf.d/50-bluez-policy.conf"
 TARGET_WIREPLUMBER_AVRCP="$HOME/.config/wireplumber/wireplumber.conf.d/51-bluez-avrcp.conf"
-TARGET_XDG_TERMINALS="$HOME/.config/xdg-terminals.list"
-CURRENT_THEME_DIR="$HOME/.config/omarchy/current/theme"
-CURRENT_THEME_COLORS="$CURRENT_THEME_DIR/colors.toml"
-CURRENT_THEME_STARSHIP="$CURRENT_THEME_DIR/starship.toml"
+# Omarchy renders ~/.config/omarchy/themed/*.tpl into here on every theme set.
+CURRENT_THEME_STARSHIP="$HOME/.local/state/omarchy/current/theme/starship.toml"
 PACKAGES_DIR="$SCRIPT_DIR/packages"
-SUPPLEMENT_SOURCE_LINE='source = ~/.config/hypr/omarchy-supplement.conf'
+SUPPLEMENT_SOURCE_LINE='require("omarchy-supplement.hypr")'
+TOGGLES_SOURCE_LINE='require("default.hypr.toggles")'
 BASH_SOURCE_LINE='[[ -f ~/.config/omarchy-supplement/shell/interactive.sh ]] && source ~/.config/omarchy-supplement/shell/interactive.sh'
 ZSH_SOURCE_LINE='[[ -f ~/.config/omarchy-supplement/shell/interactive.sh ]] && source ~/.config/omarchy-supplement/shell/interactive.sh'
 
@@ -74,11 +77,6 @@ backup_suffix() {
   date +%Y%m%d%H%M%S
 }
 
-hex_to_rgb() {
-  local hex="${1#\#}"
-  printf "%d,%d,%d" "0x${hex:0:2}" "0x${hex:2:2}" "0x${hex:4:2}"
-}
-
 link_managed_file() {
   local source_file=$1
   local target_file=$2
@@ -93,7 +91,9 @@ link_managed_file() {
   source_real=$(readlink -f "$source_file")
 
   if [[ -L $target_file ]]; then
-    target_real=$(readlink -f "$target_file")
+    # -m, not -f: an existing link may dangle (e.g. after Omarchy moved a
+    # directory out from under it), and -f fails outright on those.
+    target_real=$(readlink -m "$target_file")
 
     if [[ $target_real == "$source_real" ]]; then
       echo "Managed link already in place: $target_file"
@@ -142,12 +142,19 @@ ensure_hyprland_source() {
   fi
 
   if grep -Fxq "$SUPPLEMENT_SOURCE_LINE" "$HYPRLAND_CONFIG"; then
-    echo "Hyprland already sources omarchy-supplement.conf"
+    echo "Hyprland already requires the supplement module"
     return
   fi
 
-  printf '\n%s\n' "$SUPPLEMENT_SOURCE_LINE" >> "$HYPRLAND_CONFIG"
-  echo "Added supplement source to $HYPRLAND_CONFIG"
+  # The toggles module carries runtime flags (window gaps, transparency) and has
+  # to keep loading last, so insert above it rather than appending.
+  sed -i "\|^$TOGGLES_SOURCE_LINE\$|i $SUPPLEMENT_SOURCE_LINE" "$HYPRLAND_CONFIG"
+
+  if ! grep -Fxq "$SUPPLEMENT_SOURCE_LINE" "$HYPRLAND_CONFIG"; then
+    printf '\n%s\n' "$SUPPLEMENT_SOURCE_LINE" >> "$HYPRLAND_CONFIG"
+  fi
+
+  echo "Added supplement require to $HYPRLAND_CONFIG"
 }
 
 ensure_source_line() {
@@ -169,42 +176,13 @@ ensure_source_line() {
   echo "Added source line to $target_file"
 }
 
-render_omarchy_template() {
-  local colors_file=$1
-  local template_file=$2
-  local output_file=$3
-  local output_dir
-  local sed_script
-  local key
-  local value
-  local rgb
+remove_obsolete_link() {
+  local target_file=$1
 
-  if [[ ! -f $colors_file || ! -f $template_file ]]; then
-    return
+  if [[ -L $target_file ]]; then
+    rm "$target_file"
+    echo "Removed obsolete managed link: $target_file"
   fi
-
-  output_dir=$(dirname "$output_file")
-  mkdir -p "$output_dir"
-  sed_script=$(mktemp)
-
-  while IFS='=' read -r key value; do
-    key="${key//[\"\' ]/}"
-    [[ $key && $key != \#* ]] || continue
-    value="${value#*[\"\']}"
-    value="${value%%[\"\']*}"
-
-    printf 's|{{ %s }}|%s|g\n' "$key" "$value" >> "$sed_script"
-    printf 's|{{ %s_strip }}|%s|g\n' "$key" "${value#\#}" >> "$sed_script"
-
-    if [[ $value == \#* ]]; then
-      rgb=$(hex_to_rgb "$value")
-      printf 's|{{ %s_rgb }}|%s|g\n' "$key" "$rgb" >> "$sed_script"
-    fi
-  done < "$colors_file"
-
-  sed -f "$sed_script" "$template_file" > "$output_file"
-  rm "$sed_script"
-  echo "Rendered themed file: $output_file"
 }
 
 install_packages() {
@@ -232,8 +210,13 @@ install_packages() {
 }
 
 install_configs() {
-  link_managed_file "$MANAGED_BINDINGS_SOURCE" "$TARGET_BINDINGS"
-  link_managed_file "$MANAGED_HYPR_AUTOSTART_SOURCE" "$TARGET_HYPR_AUTOSTART"
+  local obsolete_link
+
+  for obsolete_link in "${TARGET_OLD_HYPR_LINKS[@]}"; do
+    remove_obsolete_link "$obsolete_link"
+  done
+
+  link_managed_file "$MANAGED_HYPR_SUPPLEMENT_SOURCE" "$TARGET_HYPR_SUPPLEMENT"
   link_managed_application "me.kavishdevar.librepods.desktop"
   link_managed_application "sioyek.desktop"
   link_managed_application "outlook-chromium.desktop"
@@ -245,30 +228,24 @@ install_configs() {
   link_managed_application "citrixapp.desktop"
   link_managed_application "ctxaadsso.desktop"
   link_managed_webapp_icons
-  link_managed_file "$MANAGED_SUPPLEMENT_SOURCE" "$TARGET_SUPPLEMENT"
   link_managed_file "$MANAGED_ALACRITTY_SOURCE" "$TARGET_ALACRITTY"
   link_managed_file "$MANAGED_GIT_SOURCE" "$TARGET_GIT"
   link_managed_file "$MANAGED_GHOSTTY_SOURCE" "$TARGET_GHOSTTY"
-  if [[ -e $MANAGED_MAKIMA_SOURCE ]]; then
-    link_managed_file "$MANAGED_MAKIMA_SOURCE" "$TARGET_MAKIMA"
-  fi
   link_managed_file "$MANAGED_STARSHIP_TEMPLATE_SOURCE" "$TARGET_STARSHIP_TEMPLATE"
-  render_omarchy_template "$CURRENT_THEME_COLORS" "$TARGET_STARSHIP_TEMPLATE" "$CURRENT_THEME_STARSHIP"
   link_managed_file "$CURRENT_THEME_STARSHIP" "$TARGET_STARSHIP"
   link_managed_file "$MANAGED_TMUX_SOURCE" "$TARGET_TMUX"
   link_managed_file "$MANAGED_SHELL_SOURCE" "$TARGET_SHELL_SNIPPET"
   link_managed_file "$MANAGED_UNWANTED_WEBAPPS_SOURCE" "$TARGET_UNWANTED_WEBAPPS_SCRIPT"
-  link_managed_file "$MANAGED_SCREENSHOT_SOURCE" "$TARGET_SCREENSHOT_SCRIPT"
-  if [[ -L $TARGET_OLD_ICA_XDG_SCRIPT ]]; then
-    rm "$TARGET_OLD_ICA_XDG_SCRIPT"
-    echo "Removed obsolete managed link: $TARGET_OLD_ICA_XDG_SCRIPT"
-  fi
+  remove_obsolete_link "$TARGET_OLD_ICA_XDG_SCRIPT"
+  remove_obsolete_link "$TARGET_OLD_SCREENSHOT_SCRIPT"
   link_managed_file "$MANAGED_CITRIX_XDG_SOURCE" "$TARGET_CITRIX_XDG_SCRIPT"
   link_managed_file "$MANAGED_SIOYEK_XDG_SOURCE" "$TARGET_SIOYEK_XDG_SCRIPT"
   link_managed_file "$MANAGED_VIM_SOURCE" "$TARGET_VIMRC"
   link_managed_file "$MANAGED_WIREPLUMBER_BLUEZ_POLICY_SOURCE" "$TARGET_WIREPLUMBER_BLUEZ_POLICY"
   link_managed_file "$MANAGED_WIREPLUMBER_AVRCP_SOURCE" "$TARGET_WIREPLUMBER_AVRCP"
-  link_managed_file "$MANAGED_XDG_TERMINALS_SOURCE" "$TARGET_XDG_TERMINALS"
+  if command -v omarchy-default-terminal >/dev/null 2>&1; then
+    omarchy-default-terminal ghostty >/dev/null 2>&1 || true
+  fi
   bash "$TARGET_UNWANTED_WEBAPPS_SCRIPT"
   bash "$TARGET_SIOYEK_XDG_SCRIPT"
   bash "$TARGET_CITRIX_XDG_SCRIPT"

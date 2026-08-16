@@ -13,42 +13,43 @@ Repo-managed Omarchy customizations and bootstrap scripts.
 ## Layout
 
 ```text
-config/hypr/bindings.conf
-config/hypr/autostart.conf
-config/hypr/omarchy-supplement.conf
+config/hypr/supplement.lua
 config/applications/citrixapp.desktop
 config/applications/ctxaadsso.desktop
 config/applications/fido2_llt.desktop
 config/applications/me.kavishdevar.librepods.desktop
 config/applications/new_store.desktop
+config/applications/outlook-chromium.desktop
 config/applications/receiver.desktop
 config/applications/receiver_fido2.desktop
 config/applications/sioyek.desktop
+config/applications/teams-chromium.desktop
 config/alacritty/alacritty.toml
 config/git/config
 config/ghostty/config
+config/icons/hicolor/
 config/keyd/default.conf
-config/makima/AT Translated Set 2 keyboard.toml
 config/omarchy/themed/starship.toml.tpl
 config/omarchy-supplement/bin/remove-unwanted-webapps.sh
 config/omarchy-supplement/bin/set-citrix-xdg-defaults.sh
 config/omarchy-supplement/bin/set-sioyek-xdg-defaults.sh
-config/omarchy-supplement/bin/screenshot-select.sh
 config/shell/interactive.sh
 config/tmux/tmux.conf
 config/vim/vimrc
 config/wireplumber/wireplumber.conf.d/50-bluez-policy.conf
 config/wireplumber/wireplumber.conf.d/51-bluez-avrcp.conf
-config/xdg-terminals.list
 install.sh
 packages/install-arch-core.sh
+packages/install-icaclient.sh
 packages/install-keyd.sh
 packages/install-librepods.sh
 packages/install-neovim-config.sh
 packages/install-opencode.sh
 packages/install-sdkman.sh
 packages/install-sioyek.sh
+packages/install-tauri-deps.sh
 packages/install-tmux-tpm.sh
+packages/install-treesitter-cli.sh
 packages/install-uv.sh
 packages/lib.sh
 ```
@@ -57,9 +58,27 @@ packages/lib.sh
 
 1. Installs your packages and user tools.
 2. Symlinks managed config files into `~/.config/`.
-3. Ensures `~/.config/hypr/hyprland.conf` sources `~/.config/hypr/omarchy-supplement.conf`.
-4. Reapplies Sioyek as the XDG default for PDF and EPUB files when Sioyek is installed.
-5. Reapplies Citrix XDG handlers for `.ica` files and Citrix browser launch URLs when Citrix is installed.
+3. Ensures `~/.config/hypr/hyprland.lua` requires the supplement Hyprland module.
+4. Sets Ghostty as the `xdg-terminal-exec` default.
+5. Reapplies Sioyek as the XDG default for PDF and EPUB files when Sioyek is installed.
+6. Reapplies Citrix XDG handlers for `.ica` files and Citrix browser launch URLs when Citrix is installed.
+
+## Hyprland
+
+Omarchy Quattro configures Hyprland in Lua. The supplement keeps
+`~/.config/hypr/*.lua` stock and owned by Omarchy, and instead ships a single
+module symlinked to `~/.config/omarchy-supplement/hypr.lua`. `install.sh`
+inserts one line into `~/.config/hypr/hyprland.lua`:
+
+```lua
+require("omarchy-supplement.hypr")
+```
+
+It goes above `require("default.hypr.toggles")` so the runtime toggles (window
+gaps, transparency) still take precedence.
+
+Monitors are deliberately not repo-managed — they are machine-specific, and
+nwg-displays owns `~/.config/hypr/monitors.lua`.
 
 ## Packages
 
@@ -89,9 +108,10 @@ Save that as something like `packages/install-dev-tools.sh`, then run `./install
 `./install.sh` now manages LibrePods end to end:
 
 1. Installs the `librepods` AUR package via the normal package installer flow.
-2. Symlinks a managed `~/.config/hypr/autostart.conf` that launches `librepods --hide` with a per-app Qt style override so it does not inherit Omarchy's global Kvantum setting.
-3. Symlinks a managed desktop entry at `~/.local/share/applications/me.kavishdevar.librepods.desktop` so Walker launches LibrePods with the same per-app Qt override.
-4. Symlinks managed WirePlumber BlueZ policy and AVRCP configs and best-effort restarts WirePlumber so AirPods media controls work.
+2. Symlinks a managed desktop entry at `~/.local/share/applications/me.kavishdevar.librepods.desktop` that launches LibrePods with a per-app Qt style override, so it does not inherit Omarchy's global Kvantum setting.
+3. Symlinks managed WirePlumber BlueZ policy and AVRCP configs and best-effort restarts WirePlumber so AirPods media controls work.
+
+LibrePods is not autostarted; launch it from the Omarchy menu.
 
 The `qt.bluetooth.bluez` `CAP_NET_ADMIN` warning is left alone for now; the supplement only fixes the actual launch crash caused by the global Kvantum override.
 
