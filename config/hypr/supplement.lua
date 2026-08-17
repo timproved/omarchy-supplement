@@ -37,6 +37,9 @@ o.bind("SUPER + SHIFT + Q", "Close window", hl.dsp.window.close())
 hl.unbind("SUPER + SPACE")
 o.bind("SUPER + M", "Omarchy menu", "omarchy-menu toggle")
 
+-- Application picker, in walker's old spot. Stock SUPER+ALT+SPACE still works.
+o.bind("SUPER + R", "Apps menu", "omarchy-menu toggle apps")
+
 hl.unbind("SUPER + S") -- was: Toggle scratchpad
 o.bind("SUPER + S", "Screenshot selection", "omarchy-capture-screenshot region")
 

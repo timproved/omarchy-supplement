@@ -8,6 +8,7 @@ HYPR_DIR="$HOME/.config/hypr"
 HYPRLAND_CONFIG="$HYPR_DIR/hyprland.lua"
 MANAGED_APPLICATIONS_DIR="$SCRIPT_DIR/config/applications"
 MANAGED_WEBAPP_ICONS_DIR="$SCRIPT_DIR/config/icons/hicolor"
+MANAGED_AGENTS_SOURCE="$SCRIPT_DIR/config/agents/AGENTS.md"
 MANAGED_HYPR_SUPPLEMENT_SOURCE="$SCRIPT_DIR/config/hypr/supplement.lua"
 MANAGED_ALACRITTY_SOURCE="$SCRIPT_DIR/config/alacritty/alacritty.toml"
 MANAGED_GIT_SOURCE="$SCRIPT_DIR/config/git/config"
@@ -27,6 +28,12 @@ TARGET_WEBAPP_ICONS_DIR="$HOME/.local/share/icons/hicolor"
 # require("omarchy-supplement.hypr"). That path has no ?/init.lua pattern, so
 # this has to stay a single file rather than a directory.
 TARGET_HYPR_SUPPLEMENT="$HOME/.config/omarchy-supplement/hypr.lua"
+# One instruction file, linked into each agent CLI's own global path. Claude
+# Code reads only ~/.claude/CLAUDE.md at the user level and ignores ~/AGENTS.md
+# entirely; Codex and opencode each look somewhere else again.
+TARGET_CLAUDE_MEMORY="$HOME/.claude/CLAUDE.md"
+TARGET_CODEX_AGENTS="$HOME/.codex/AGENTS.md"
+TARGET_OPENCODE_AGENTS="$HOME/.config/opencode/AGENTS.md"
 TARGET_ALACRITTY="$HOME/.config/alacritty/alacritty.toml"
 TARGET_GIT="$HOME/.config/git/config"
 TARGET_GHOSTTY="$HOME/.config/ghostty/config"
@@ -228,6 +235,9 @@ install_configs() {
   link_managed_application "citrixapp.desktop"
   link_managed_application "ctxaadsso.desktop"
   link_managed_webapp_icons
+  link_managed_file "$MANAGED_AGENTS_SOURCE" "$TARGET_CLAUDE_MEMORY"
+  link_managed_file "$MANAGED_AGENTS_SOURCE" "$TARGET_CODEX_AGENTS"
+  link_managed_file "$MANAGED_AGENTS_SOURCE" "$TARGET_OPENCODE_AGENTS"
   link_managed_file "$MANAGED_ALACRITTY_SOURCE" "$TARGET_ALACRITTY"
   link_managed_file "$MANAGED_GIT_SOURCE" "$TARGET_GIT"
   link_managed_file "$MANAGED_GHOSTTY_SOURCE" "$TARGET_GHOSTTY"

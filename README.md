@@ -13,6 +13,7 @@ Repo-managed Omarchy customizations and bootstrap scripts.
 ## Layout
 
 ```text
+config/agents/AGENTS.md
 config/hypr/supplement.lua
 config/applications/citrixapp.desktop
 config/applications/ctxaadsso.desktop
@@ -62,6 +63,24 @@ packages/lib.sh
 4. Sets Ghostty as the `xdg-terminal-exec` default.
 5. Reapplies Sioyek as the XDG default for PDF and EPUB files when Sioyek is installed.
 6. Reapplies Citrix XDG handlers for `.ica` files and Citrix browser launch URLs when Citrix is installed.
+
+## Agent instructions
+
+`config/agents/AGENTS.md` holds the personal instructions shared by every agent
+CLI. There is no single path they all read, so `install.sh` links that one file
+into each tool's own global location:
+
+| Target | Read by |
+|---|---|
+| `~/.claude/CLAUDE.md` | Claude Code user memory |
+| `~/.codex/AGENTS.md` | Codex global instructions |
+| `~/.config/opencode/AGENTS.md` | opencode global instructions |
+
+Claude Code ignores `~/AGENTS.md` entirely, which is why the Claude target keeps
+the `CLAUDE.md` name.
+
+Not to be confused with the `AGENTS.md` at the root of this repo — that one is
+repo-scoped context about the supplement itself.
 
 ## Hyprland
 
