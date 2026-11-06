@@ -9,6 +9,7 @@ HYPRLAND_CONFIG="$HYPR_DIR/hyprland.lua"
 MANAGED_APPLICATIONS_DIR="$SCRIPT_DIR/config/applications"
 MANAGED_WEBAPP_ICONS_DIR="$SCRIPT_DIR/config/icons/hicolor"
 MANAGED_AGENTS_SOURCE="$SCRIPT_DIR/config/agents/AGENTS.md"
+MANAGED_SKILLS_DIR="$SCRIPT_DIR/skills"
 MANAGED_HYPR_SUPPLEMENT_SOURCE="$SCRIPT_DIR/config/hypr/supplement.lua"
 MANAGED_ALACRITTY_SOURCE="$SCRIPT_DIR/config/alacritty/alacritty.toml"
 MANAGED_GIT_SOURCE="$SCRIPT_DIR/config/git/config"
@@ -19,6 +20,7 @@ MANAGED_SHELL_SOURCE="$SCRIPT_DIR/config/shell/interactive.sh"
 MANAGED_UNWANTED_WEBAPPS_SOURCE="$SCRIPT_DIR/config/omarchy-supplement/bin/remove-unwanted-webapps.sh"
 MANAGED_CITRIX_XDG_SOURCE="$SCRIPT_DIR/config/omarchy-supplement/bin/set-citrix-xdg-defaults.sh"
 MANAGED_SIOYEK_XDG_SOURCE="$SCRIPT_DIR/config/omarchy-supplement/bin/set-sioyek-xdg-defaults.sh"
+MANAGED_BT_HEADSET_TOGGLE_SOURCE="$SCRIPT_DIR/config/omarchy-supplement/bin/toggle-bt-headset.sh"
 MANAGED_VIM_SOURCE="$SCRIPT_DIR/config/vim/vimrc"
 MANAGED_WIREPLUMBER_BLUEZ_POLICY_SOURCE="$SCRIPT_DIR/config/wireplumber/wireplumber.conf.d/50-bluez-policy.conf"
 MANAGED_WIREPLUMBER_AVRCP_SOURCE="$SCRIPT_DIR/config/wireplumber/wireplumber.conf.d/51-bluez-avrcp.conf"
@@ -34,6 +36,8 @@ TARGET_HYPR_SUPPLEMENT="$HOME/.config/omarchy-supplement/hypr.lua"
 TARGET_CLAUDE_MEMORY="$HOME/.claude/CLAUDE.md"
 TARGET_CODEX_AGENTS="$HOME/.codex/AGENTS.md"
 TARGET_OPENCODE_AGENTS="$HOME/.config/opencode/AGENTS.md"
+TARGET_CLAUDE_SKILLS_DIR="$HOME/.claude/skills"
+TARGET_OPENCODE_SKILLS_DIR="$HOME/.config/opencode/skills"
 TARGET_ALACRITTY="$HOME/.config/alacritty/alacritty.toml"
 TARGET_GIT="$HOME/.config/git/config"
 TARGET_GHOSTTY="$HOME/.config/ghostty/config"
@@ -44,6 +48,7 @@ TARGET_SHELL_SNIPPET="$HOME/.config/omarchy-supplement/shell/interactive.sh"
 TARGET_UNWANTED_WEBAPPS_SCRIPT="$HOME/.config/omarchy-supplement/bin/remove-unwanted-webapps.sh"
 TARGET_CITRIX_XDG_SCRIPT="$HOME/.config/omarchy-supplement/bin/set-citrix-xdg-defaults.sh"
 TARGET_SIOYEK_XDG_SCRIPT="$HOME/.config/omarchy-supplement/bin/set-sioyek-xdg-defaults.sh"
+TARGET_BT_HEADSET_TOGGLE_SCRIPT="$HOME/.config/omarchy-supplement/bin/toggle-bt-headset.sh"
 TARGET_OLD_ICA_XDG_SCRIPT="$HOME/.config/omarchy-supplement/bin/set-ica-xdg-default.sh"
 TARGET_OLD_SCREENSHOT_SCRIPT="$HOME/.config/omarchy-supplement/bin/screenshot-select.sh"
 # Pre-Quattro links: Hyprland read .conf, and this list was repo-managed. The
@@ -68,15 +73,17 @@ ZSH_SOURCE_LINE='[[ -f ~/.config/omarchy-supplement/shell/interactive.sh ]] && s
 
 RUN_CONFIGS=1
 RUN_PACKAGES=1
+RUN_SKILLS=1
 
 usage() {
   cat <<'EOF'
 Usage: ./install.sh [option]
 
 Options:
-  --configs-only   Only install and wire up config files
-  --packages-only  Only install packages and tools
-  --help           Show this help text
+  --configs-only    Only install and wire up config files
+  --packages-only   Only install packages and tools
+  --install-skills  Only install skills for Claude Code and opencode
+  --help            Show this help text
 EOF
 }
 
@@ -84,44 +91,44 @@ backup_suffix() {
   date +%Y%m%d%H%M%S
 }
 
-link_managed_file() {
-  local source_file=$1
-  local target_file=$2
-  local target_dir
+link_managed_path() {
+  local source_path=$1
+  local target_path=$2
+  local target_parent
   local target_real
   local source_real
-  local backup_file
+  local backup_path
 
-  target_dir=$(dirname "$target_file")
-  mkdir -p "$target_dir"
+  target_parent=$(dirname "$target_path")
+  mkdir -p "$target_parent"
 
-  source_real=$(readlink -f "$source_file")
+  source_real=$(readlink -f "$source_path")
 
-  if [[ -L $target_file ]]; then
+  if [[ -L $target_path ]]; then
     # -m, not -f: an existing link may dangle (e.g. after Omarchy moved a
     # directory out from under it), and -f fails outright on those.
-    target_real=$(readlink -m "$target_file")
+    target_real=$(readlink -m "$target_path")
 
     if [[ $target_real == "$source_real" ]]; then
-      echo "Managed link already in place: $target_file"
+      echo "Managed link already in place: $target_path"
       return
     fi
 
-    rm "$target_file"
-  elif [[ -e $target_file ]]; then
-    backup_file="$target_file.pre-omarchy-supplement.$(backup_suffix).bak"
-    mv "$target_file" "$backup_file"
-    echo "Backed up existing file: $backup_file"
+    rm "$target_path"
+  elif [[ -e $target_path ]]; then
+    backup_path="$target_path.pre-omarchy-supplement.$(backup_suffix).bak"
+    mv "$target_path" "$backup_path"
+    echo "Backed up existing path: $backup_path"
   fi
 
-  ln -s "$source_file" "$target_file"
-  echo "Linked $target_file -> $source_file"
+  ln -s "$source_path" "$target_path"
+  echo "Linked $target_path -> $source_path"
 }
 
 link_managed_application() {
   local desktop_id=$1
 
-  link_managed_file "$MANAGED_APPLICATIONS_DIR/$desktop_id" "$TARGET_APPLICATIONS_DIR/$desktop_id"
+  link_managed_path "$MANAGED_APPLICATIONS_DIR/$desktop_id" "$TARGET_APPLICATIONS_DIR/$desktop_id"
 }
 
 link_managed_webapp_icons() {
@@ -136,7 +143,7 @@ link_managed_webapp_icons() {
     for icon_file in "$apps_dir"/*.png; do
       [[ -f $icon_file ]] || continue
       relative_path=${icon_file#"$MANAGED_WEBAPP_ICONS_DIR"/}
-      link_managed_file "$icon_file" "$TARGET_WEBAPP_ICONS_DIR/$relative_path"
+      link_managed_path "$icon_file" "$TARGET_WEBAPP_ICONS_DIR/$relative_path"
     done
   done
   shopt -u nullglob
@@ -216,6 +223,63 @@ install_packages() {
   done
 }
 
+link_managed_skill() {
+  local source_dir=$1
+  local target_root=$2
+  local backup_root=$3
+  local skill_name
+  local source_real
+  local target_dir
+  local target_real
+
+  skill_name=$(basename "$source_dir")
+  source_real=$(readlink -f "$source_dir")
+  target_dir="$target_root/$skill_name"
+
+  if [[ -L $target_dir ]]; then
+    target_real=$(readlink -m "$target_dir")
+
+    if [[ $target_real == "$source_real" ]]; then
+      echo "Managed skill already in place: $target_dir"
+      return
+    fi
+  fi
+
+  if [[ -L $target_dir || -e $target_dir ]]; then
+    mkdir -p "$backup_root"
+    mv "$target_dir" "$backup_root/$skill_name"
+    echo "Backed up existing skill: $backup_root/$skill_name"
+  fi
+
+  ln -s "$source_dir" "$target_dir"
+  echo "Linked $target_dir -> $source_dir"
+}
+
+install_skills() {
+  local claude_backup_root
+  local skill_dir
+  local -a skill_dirs=()
+
+  if [[ ! -d $MANAGED_SKILLS_DIR ]]; then
+    echo "Skills directory not found: $MANAGED_SKILLS_DIR"
+    return 1
+  fi
+
+  mkdir -p "$TARGET_CLAUDE_SKILLS_DIR"
+  claude_backup_root="$TARGET_CLAUDE_SKILLS_DIR.pre-omarchy-supplement.$(backup_suffix).bak"
+
+  shopt -s nullglob
+  skill_dirs=("$MANAGED_SKILLS_DIR"/*/)
+  shopt -u nullglob
+
+  for skill_dir in "${skill_dirs[@]}"; do
+    [[ -f $skill_dir/SKILL.md ]] || continue
+    link_managed_skill "$skill_dir" "$TARGET_CLAUDE_SKILLS_DIR" "$claude_backup_root"
+  done
+
+  link_managed_path "$MANAGED_SKILLS_DIR" "$TARGET_OPENCODE_SKILLS_DIR"
+}
+
 install_configs() {
   local obsolete_link
 
@@ -223,7 +287,7 @@ install_configs() {
     remove_obsolete_link "$obsolete_link"
   done
 
-  link_managed_file "$MANAGED_HYPR_SUPPLEMENT_SOURCE" "$TARGET_HYPR_SUPPLEMENT"
+  link_managed_path "$MANAGED_HYPR_SUPPLEMENT_SOURCE" "$TARGET_HYPR_SUPPLEMENT"
   link_managed_application "me.kavishdevar.librepods.desktop"
   link_managed_application "sioyek.desktop"
   link_managed_application "outlook-chromium.desktop"
@@ -235,24 +299,25 @@ install_configs() {
   link_managed_application "citrixapp.desktop"
   link_managed_application "ctxaadsso.desktop"
   link_managed_webapp_icons
-  link_managed_file "$MANAGED_AGENTS_SOURCE" "$TARGET_CLAUDE_MEMORY"
-  link_managed_file "$MANAGED_AGENTS_SOURCE" "$TARGET_CODEX_AGENTS"
-  link_managed_file "$MANAGED_AGENTS_SOURCE" "$TARGET_OPENCODE_AGENTS"
-  link_managed_file "$MANAGED_ALACRITTY_SOURCE" "$TARGET_ALACRITTY"
-  link_managed_file "$MANAGED_GIT_SOURCE" "$TARGET_GIT"
-  link_managed_file "$MANAGED_GHOSTTY_SOURCE" "$TARGET_GHOSTTY"
-  link_managed_file "$MANAGED_STARSHIP_TEMPLATE_SOURCE" "$TARGET_STARSHIP_TEMPLATE"
-  link_managed_file "$CURRENT_THEME_STARSHIP" "$TARGET_STARSHIP"
-  link_managed_file "$MANAGED_TMUX_SOURCE" "$TARGET_TMUX"
-  link_managed_file "$MANAGED_SHELL_SOURCE" "$TARGET_SHELL_SNIPPET"
-  link_managed_file "$MANAGED_UNWANTED_WEBAPPS_SOURCE" "$TARGET_UNWANTED_WEBAPPS_SCRIPT"
+  link_managed_path "$MANAGED_AGENTS_SOURCE" "$TARGET_CLAUDE_MEMORY"
+  link_managed_path "$MANAGED_AGENTS_SOURCE" "$TARGET_CODEX_AGENTS"
+  link_managed_path "$MANAGED_AGENTS_SOURCE" "$TARGET_OPENCODE_AGENTS"
+  link_managed_path "$MANAGED_ALACRITTY_SOURCE" "$TARGET_ALACRITTY"
+  link_managed_path "$MANAGED_GIT_SOURCE" "$TARGET_GIT"
+  link_managed_path "$MANAGED_GHOSTTY_SOURCE" "$TARGET_GHOSTTY"
+  link_managed_path "$MANAGED_STARSHIP_TEMPLATE_SOURCE" "$TARGET_STARSHIP_TEMPLATE"
+  link_managed_path "$CURRENT_THEME_STARSHIP" "$TARGET_STARSHIP"
+  link_managed_path "$MANAGED_TMUX_SOURCE" "$TARGET_TMUX"
+  link_managed_path "$MANAGED_SHELL_SOURCE" "$TARGET_SHELL_SNIPPET"
+  link_managed_path "$MANAGED_UNWANTED_WEBAPPS_SOURCE" "$TARGET_UNWANTED_WEBAPPS_SCRIPT"
   remove_obsolete_link "$TARGET_OLD_ICA_XDG_SCRIPT"
   remove_obsolete_link "$TARGET_OLD_SCREENSHOT_SCRIPT"
-  link_managed_file "$MANAGED_CITRIX_XDG_SOURCE" "$TARGET_CITRIX_XDG_SCRIPT"
-  link_managed_file "$MANAGED_SIOYEK_XDG_SOURCE" "$TARGET_SIOYEK_XDG_SCRIPT"
-  link_managed_file "$MANAGED_VIM_SOURCE" "$TARGET_VIMRC"
-  link_managed_file "$MANAGED_WIREPLUMBER_BLUEZ_POLICY_SOURCE" "$TARGET_WIREPLUMBER_BLUEZ_POLICY"
-  link_managed_file "$MANAGED_WIREPLUMBER_AVRCP_SOURCE" "$TARGET_WIREPLUMBER_AVRCP"
+  link_managed_path "$MANAGED_CITRIX_XDG_SOURCE" "$TARGET_CITRIX_XDG_SCRIPT"
+  link_managed_path "$MANAGED_SIOYEK_XDG_SOURCE" "$TARGET_SIOYEK_XDG_SCRIPT"
+  link_managed_path "$MANAGED_BT_HEADSET_TOGGLE_SOURCE" "$TARGET_BT_HEADSET_TOGGLE_SCRIPT"
+  link_managed_path "$MANAGED_VIM_SOURCE" "$TARGET_VIMRC"
+  link_managed_path "$MANAGED_WIREPLUMBER_BLUEZ_POLICY_SOURCE" "$TARGET_WIREPLUMBER_BLUEZ_POLICY"
+  link_managed_path "$MANAGED_WIREPLUMBER_AVRCP_SOURCE" "$TARGET_WIREPLUMBER_AVRCP"
   if command -v omarchy-default-terminal >/dev/null 2>&1; then
     omarchy-default-terminal ghostty >/dev/null 2>&1 || true
   fi
@@ -288,10 +353,17 @@ while (( $# > 0 )); do
     --configs-only)
       RUN_CONFIGS=1
       RUN_PACKAGES=0
+      RUN_SKILLS=0
       ;;
     --packages-only)
       RUN_CONFIGS=0
       RUN_PACKAGES=1
+      RUN_SKILLS=0
+      ;;
+    --install-skills)
+      RUN_CONFIGS=0
+      RUN_PACKAGES=0
+      RUN_SKILLS=1
       ;;
     --help)
       usage
@@ -313,6 +385,10 @@ fi
 
 if (( RUN_CONFIGS == 1 )); then
   install_configs
+fi
+
+if (( RUN_SKILLS == 1 )); then
+  install_skills
 fi
 
 echo "Omarchy supplement install complete"

@@ -8,6 +8,7 @@ Repo-managed Omarchy customizations and bootstrap scripts.
 ./install.sh
 ./install.sh --configs-only
 ./install.sh --packages-only
+./install.sh --install-skills
 ```
 
 ## Layout
@@ -34,6 +35,7 @@ config/omarchy/themed/starship.toml.tpl
 config/omarchy-supplement/bin/remove-unwanted-webapps.sh
 config/omarchy-supplement/bin/set-citrix-xdg-defaults.sh
 config/omarchy-supplement/bin/set-sioyek-xdg-defaults.sh
+config/omarchy-supplement/bin/toggle-bt-headset.sh
 config/shell/interactive.sh
 config/tmux/tmux.conf
 config/vim/vimrc
@@ -53,16 +55,28 @@ packages/install-tmux-tpm.sh
 packages/install-treesitter-cli.sh
 packages/install-uv.sh
 packages/lib.sh
+skills/
+├── diagnosing-bugs/
+├── domain-modeling/
+├── grill-me/
+├── grill-with-docs/
+├── grilling/
+├── handoff/
+├── prototype/
+├── research/
+├── unslop/
+└── wayfinder/
 ```
 
 `install.sh` does the following:
 
 1. Installs your packages and user tools.
 2. Symlinks managed config files into `~/.config/`.
-3. Ensures `~/.config/hypr/hyprland.lua` requires the supplement Hyprland module.
-4. Sets Ghostty as the `xdg-terminal-exec` default.
-5. Reapplies Sioyek as the XDG default for PDF and EPUB files when Sioyek is installed.
-6. Reapplies Citrix XDG handlers for `.ica` files and Citrix browser launch URLs when Citrix is installed.
+3. Installs the managed skills for Claude Code and opencode.
+4. Ensures `~/.config/hypr/hyprland.lua` requires the supplement Hyprland module.
+5. Sets Ghostty as the `xdg-terminal-exec` default.
+6. Reapplies Sioyek as the XDG default for PDF and EPUB files when Sioyek is installed.
+7. Reapplies Citrix XDG handlers for `.ica` files and Citrix browser launch URLs when Citrix is installed.
 
 ## Agent instructions
 
@@ -81,6 +95,28 @@ the `CLAUDE.md` name.
 
 Not to be confused with the `AGENTS.md` at the root of this repo — that one is
 repo-scoped context about the supplement itself.
+
+## Agent skills
+
+`skills/` contains a flat, curated copy of the Matt Pocock skills used on this
+system. The upstream license is preserved at `skills/LICENSE`.
+
+The default install includes skills. Run `./install.sh --install-skills` to
+install only skills without running package installers or changing other
+configs.
+
+The two agent CLIs need different migration behavior:
+
+- `~/.config/opencode/skills` is replaced by a symlink to this repo's `skills/`
+  directory. An existing directory is first moved to a timestamped sibling
+  backup so old categorized copies are no longer scanned.
+- Claude Code keeps its existing `~/.claude/skills` directory. Each managed
+  skill is linked individually, while unrelated skills remain untouched.
+  Conflicting managed skills are moved to one timestamped sibling backup
+  outside Claude's scan path.
+
+Rerunning the installer leaves correct links in place. Restart Claude Code or
+opencode after installing so a new session loads the skills.
 
 ## Hyprland
 

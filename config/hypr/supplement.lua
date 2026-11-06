@@ -31,7 +31,8 @@ o.bind("SUPER + SHIFT + L", "Move window right", hl.dsp.window.move({ direction 
 o.bind("SUPER + SHIFT + J", "Move window down", hl.dsp.window.move({ direction = "d" }))
 o.bind("SUPER + SHIFT + K", "Move window up", hl.dsp.window.move({ direction = "u" }))
 
-o.bind("SUPER + SHIFT + Q", "Close window", hl.dsp.window.close())
+-- Replace SUPER+SHIFT+Q (was: Calculator) with close window.
+o.rebind("SUPER + SHIFT + Q", "Close window", hl.dsp.window.close())
 
 -- Menu on SUPER+M instead of SUPER+SPACE.
 hl.unbind("SUPER + SPACE")
@@ -58,3 +59,10 @@ o.bind(
   { launch = "chromium --profile-directory=Default --app=https://teams.cloud.microsoft/" }
 )
 o.bind("SUPER + SHIFT + V", "Bitwarden", { focus = "bitwarden", launch = "bitwarden" })
+
+-- AirPods mic: auto-switching to HFP is off (50-bluez-policy.conf), so toggle by hand.
+o.bind(
+  "SHIFT + XF86AudioMicMute",
+  "Toggle Bluetooth headset mic",
+  "bash " .. (os.getenv("HOME") or "") .. "/.config/omarchy-supplement/bin/toggle-bt-headset.sh"
+)
